@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:food_order/controller/restaurant_controller.dart';
 import 'package:food_order/shared/buttons.dart';
 import 'package:food_order/shared/restaurant_card.dart';
 import 'package:food_order/views/search_screen.dart';
@@ -7,9 +8,6 @@ import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 
 class HomeScreen extends StatefulWidget {
-
- 
-
   const HomeScreen({super.key});
 
   @override
@@ -17,17 +15,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
   String? streetName;
   String? locality;
   String? pincode;
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-
+  final RestaurnatController controller = Get.put(RestaurnatController());
 
   @override
   void initState() {
@@ -38,133 +30,122 @@ class _HomeScreenState extends State<HomeScreen> {
     streetName = firstPlacemark.street;
     locality = firstPlacemark.locality;
     pincode = firstPlacemark.postalCode;
-    
+    print(pincode);
+
+    controller.getRestaurnats(pinCode: pincode);
   }
 
   @override
   Widget build(BuildContext context) {
-   
-
-
-    
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         surfaceTintColor: Colors.white,
         backgroundColor: Colors.white,
-        leading: const SidebarButton(),
-        leadingWidth: 20,
-        title: topBar()
+        automaticallyImplyLeading: false,
+        // title: topBar(),
+        centerTitle: true,
       ),
-      body: CustomScrollView(
-        slivers: [
-        
-          SliverAppBar(
-            pinned: true,
-            toolbarHeight: 100,
-             backgroundColor: Colors.white,
-            
-             title: Padding(
-               padding: const EdgeInsets.symmetric(vertical: 50.0),
-               child: Column(
-                 crossAxisAlignment: CrossAxisAlignment.start,
-              
-                 children: [
-                   const Text(
-                     'Hey Halal, Good Afternoon!',
-                     style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 16),
-                   ),
-                  const SizedBox(height: 10),
-                  
-                   GestureDetector(
-                     onTap: () {
-                       Get.to(()=> const SearchScreen());
-                     },
-                     child: Container(
-                       padding: const EdgeInsets.all(10.0),
-                       decoration: BoxDecoration(
-                         color: const Color.fromARGB(150, 160, 165, 186),
-                         borderRadius: BorderRadius.circular(10.0)
-                       ),
-                       child: const Row(
-                         children: [
-                           FaIcon(FontAwesomeIcons.magnifyingGlass, 
-                           color: Colors.black,
-                           size: 16,),
-                            SizedBox(width: 10),
-                           Text('Search dishes, restaurants',
-                            style: TextStyle(
+      body: Obx(() {
+        return CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              toolbarHeight: 100,
+              backgroundColor: Colors.white,
+              automaticallyImplyLeading: false,
+              title: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 50.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Hey Halal, Good Afternoon!',
+                      style: TextStyle(color: Colors.black, fontSize: 16),
+                    ),
+                    const SizedBox(height: 10),
+                    GestureDetector(
+                      onTap: () {
+                        Get.to(() => const SearchScreen());
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(10.0),
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(150, 160, 165, 186),
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        child: const Row(
+                          children: [
+                            FaIcon(
+                              FontAwesomeIcons.magnifyingGlass,
                               color: Colors.black,
-                              fontSize: 16)),
-                         ],
-                       ),
-                     ),
-                   )
-                 ],
-               ),
-             ),
-             expandedHeight: 100,
-             flexibleSpace: FlexibleSpaceBar(
-               background: Container(color: Colors.white,),
-             ),
-           ),
-         
-          
-           SliverPadding(
-            
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
-            sliver: SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  categories(),
-                ],
+                              size: 16,
+                            ),
+                            SizedBox(width: 10),
+                            Text('Search dishes, restaurants',
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 16)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              expandedHeight: 100,
+              
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    categories(),
+                  ],
+                ),
               ),
             ),
-          ),
-             SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                return const Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-                  child: RestaurantCard(),
-                  
-                );
-              },
-              childCount: 10,
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final restaurant = controller.restaurantList[index];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                    child: RestaurantCard(restaurnatData: restaurant,),
+                  );
+                },
+                childCount: controller.restaurantList.length,
+              ),
             ),
-          ),
-        
-        ],
-      ),
+          ],
+        );
+      }),
     );
   }
 
-  Widget topBar() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        
-        Column(children: [
-          RichText(
-              text: const TextSpan(
-                  text: "Deliver To",
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.orange,
-                      fontSize: 20))),
-          RichText(
-              text: TextSpan(
-                   text: '$streetName, $locality',
-                  style:const  TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.orange)))
-        ]),
-        const Cartbutton()
-      ],
-    );
-  }
+  // Widget topBar() {
+  //   return Row(
+  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //     children: [
+  //       SidebarButton(),
+  //       Column(children: [
+  //         const RichText(
+  //             text: TextSpan(
+  //                 text: "Deliver To",
+  //                 style: TextStyle(
+  //                     fontWeight: FontWeight.bold,
+  //                     color: Colors.orange,
+  //                     fontSize: 20))),
+  //         RichText(
+  //             text: TextSpan(
+  //                 text: '$streetName, $locality',
+  //                 style: const TextStyle(
+  //                     fontWeight: FontWeight.bold, color: Colors.orange)))
+  //       ]),
+  //       const CartButton()
+  //     ],
+  //   );
+  // }
 
   Widget searchBar() {
     return TextField(
@@ -181,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
           hintText: 'Search dishes, restaurants',
         ),
         onTap: () {
-          Get.to(()=>const SearchScreen());
+          Get.to(() => const SearchScreen());
         });
   }
 
@@ -222,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
     return Column(
       children: [
-       const SectionTitle(title: "All categories"),
+        const SectionTitle(title: "All categories"),
         const SizedBox(height: 20),
         SizedBox(
           height: 250,
@@ -255,12 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
     );
   }
-
- 
-
- 
 }
-
 
 class SectionTitle extends StatelessWidget {
   final String title;

@@ -100,7 +100,7 @@ class _SearchresultState extends State<Searchresult> {
                     onTap: (){
                       Get.to(()=>const Resturantview());
                     },
-                    child: const RestaurantCard()),
+                    child: const RestaurantCard(restaurnatData: {},)),
                   
                 );
                     }
